@@ -1,3 +1,4 @@
+#!/Applications/Kicad/kicad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python
 '''
 	A python script to create Nice looking board previews.
 
@@ -5,6 +6,9 @@
 '''
 
 import sys
+sys.path.insert(
+    0,
+    "/Applications/Kicad/kicad.app/Contents/Frameworks/python/site-packages/")
 import os
 import time
 
@@ -28,12 +32,12 @@ except:
     
 
 greenStandard = {
-	'Copper' : ['#E8D959',0.85],
-	'CopperInner' : ['#402400',0.80],
-	'SolderMask' : ['#1D5D17',0.80],
-	'Paste' : ['#9E9E9E',0.95],
-	'Silk' : ['#eaebe5',1.00],
-	'Edge' : ['#000000',0.20],
+	'Copper' : ['#E8D959'],
+	'CopperInner' : ['#402400'],
+	'SolderMask' : ['#1D5D17'],
+	'Paste' : ['#9E9E9E'],
+	'Silk' : ['#eaebe5'],
+	'Edge' : ['#000000'],
 	'BackGround' : ['#998060']
 }
 
@@ -362,11 +366,11 @@ def render(plot_plan, output_filename):
 	]
 	os.environ["PATH"] += os.pathsep + os.pathsep.join(pathlist)
 	try:	
-		version = subprocess.check_output(['inkscape', '--version'], stderr=None).split()
+		version = subprocess.check_output(['/Applications/Inkscape.app/Contents/MacOS/inkscape', '--version'], stderr=None).split()
 		if (len(version) > 1 and version[1].decode('utf-8').startswith("0.")) or (len(version) == 0):
 			print("Detected Inkscape version < 1.0")
 			subprocess.check_call([
-				'inkscape',
+				'/Applications/Inkscape.app/Contents/MacOS/inkscape',
 				'--export-area={}:{}:{}:{}'.format(int(x0),int(y0),int(x1),int(y1)),
 				'--export-dpi={}'.format(dpi),
 				'--export-png', final_png,
@@ -376,8 +380,7 @@ def render(plot_plan, output_filename):
 		else:
 			print("Detected Inkscape version 1.0+")
 			subprocess.check_call([
-				'inkscape',
-				#'--export-area={}:{}:{}:{}'.format(int(x0),int(y0),int(x1),int(y1)),
+				'/Applications/Inkscape.app/Contents/MacOS/inkscape',
 				'--export-area-drawing',
 				'--export-dpi={}'.format(dpi),
 				'--export-type=png',
@@ -388,7 +391,7 @@ def render(plot_plan, output_filename):
 			])
 	except Exception as e:
 		print(e)
-		#print("Inkscape is most likely not in your path")
+		print("Inkscape is most likely not in your path")
 		
 
 
@@ -447,12 +450,10 @@ bb = board.GetBoardEdgesBoundingBox()
 # Plot Various layer to generate Front View
 bMirrorMode = False
 plot_plan = [
-	( In1_Cu, "",'CopperInner' ),
 	( F_Cu, "",'Copper' ),
 	( F_Mask, 'Invert','SolderMask' ),
 	( F_Paste, "" , 'Paste' ),
 	( F_SilkS, "" ,'Silk' ),
-	( Edge_Cuts, ""  ,'Edge' ),
 ]
 
 render(plot_plan, project_name + '-Front.png')
@@ -461,24 +462,23 @@ render(plot_plan, project_name + '-Front.png')
 # Fli layers and generate Back View
 bMirrorMode = True
 plot_plan = [
-	( In2_Cu, "",'CopperInner' ),
 	( B_Cu, "",'Copper' ),
 	( B_Mask, "Invert" ,'SolderMask' ),
 	( B_Paste, "" , 'Paste' ),
 	( B_SilkS, "" ,'Silk' ),
-	( Edge_Cuts, ""  ,'Edge' ),
 ]
 render(plot_plan, project_name + '-Back.png')
 
 # Experiments to render out various texture maps
-#colours = bumpMap
-#plot_plan = [
-#	( F_Cu, "",'Copper' ),
-#	( F_Mask, 'Invert','SolderMask' ),
-#	( F_Paste, "" , 'Paste' ),
-#	( F_SilkS, "" ,'Silk' ),
-#	( Edge_Cuts, ""  ,'Edge' ),
-#]
-#render(plot_plan, project_name + '-Bump.png')
+bMirrorMode = False
+colours = bumpMap
+plot_plan = [
+	( F_Cu, "",'Copper' ),
+	( F_Mask, 'Invert','SolderMask' ),
+	( F_Paste, "" , 'Paste' ),
+	( F_SilkS, "" ,'Silk' ),
+	( Edge_Cuts, ""  ,'Edge' ),
+]
+render(plot_plan, project_name + '-Bump.png')
 
 shutil.rmtree(temp_dir, ignore_errors=True)
